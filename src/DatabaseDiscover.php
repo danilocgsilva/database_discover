@@ -17,9 +17,9 @@ class DatabaseDiscover
 
     public function getFieldsFromTable(string $tableName): Generator
     {
-        $queryBase = "DESCRIBE :table";
+        $queryBase = "DESCRIBE $tableName";
         $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-        $toQuery->execute([':table' => $tableName]);
+        $toQuery->execute();
         while ($row = $toQuery->fetch(PDO::FETCH_ASSOC)) {
             yield $row["Field"];
         }
