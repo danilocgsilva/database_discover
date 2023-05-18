@@ -28,4 +28,9 @@ class Table
     {
         return $this->size;
     }
+
+    public function __toString()
+    {
+        return $this->getName();
+    }
 }
