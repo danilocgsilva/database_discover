@@ -4,7 +4,11 @@ namespace Danilocgsilva\DatabaseDiscover;
 
 use PDO;
 use Generator;
-use Danilocgsilva\DatabaseDiscover\{Table, ReferencingTable};
+use Danilocgsilva\DatabaseDiscover\{
+    Table, 
+    ReferencingTable, 
+    Field
+};
 
 class DatabaseDiscover
 {
@@ -25,7 +29,15 @@ class DatabaseDiscover
         $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
         $toQuery->execute();
         while ($row = $toQuery->fetch(PDO::FETCH_ASSOC)) {
-            yield $row["Field"];
+            $field = (new Field())
+                ->setField($row["Field"])
+                ->setType($row["Type"])
+                ->seyNull($row["Null"])
+                ->setKey($row["Key"])
+                ->setDefault($row["Default"])
+                ->setExtra($row["Extra"]);
+
+            yield $field;
         }
     }
 
