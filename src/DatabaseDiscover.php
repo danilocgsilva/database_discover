@@ -30,7 +30,7 @@ class DatabaseDiscover
         $toQuery->execute();
         while ($row = $toQuery->fetch(PDO::FETCH_ASSOC)) {
             $field = (new Field())
-                ->setField($row["Field"])
+                ->setName($row["Field"])
                 ->setType($row["Type"])
                 ->seyNull($row["Null"])
                 ->setKey($row["Key"])

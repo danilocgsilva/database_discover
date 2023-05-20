@@ -4,16 +4,16 @@ namespace Danilocgsilva\DatabaseDiscover;
 
 class Field
 {
-    private string $field;
+    private string $name;
     private string $type;
     private ?string $null;
     private string $key;
     private ?string $default;
     private string $extra;
 
-    public function setField(string $field): self
+    public function setName(string $name): self
     {
-        $this->field = $field;
+        $this->name = $name;
         return $this;
     }
 
@@ -49,6 +49,16 @@ class Field
 
     public function __toString()
     {
-        return $this->field;
+        return $this->name;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
     }
 }
