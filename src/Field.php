@@ -23,7 +23,7 @@ class Field
         return $this;
     }
 
-    public function seyNull(string $nullData): self
+    public function setNull(string $nullData): self
     {
         $this->null = $nullData;
         return $this;
@@ -60,5 +60,10 @@ class Field
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getNullData()
+    {
+        return $this->null;
     }
 }
