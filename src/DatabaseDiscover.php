@@ -32,7 +32,7 @@ class DatabaseDiscover
             $field = (new Field())
                 ->setName($row["Field"])
                 ->setType($row["Type"])
-                ->seyNull($row["Null"])
+                ->setNull($row["Null"])
                 ->setKey($row["Key"])
                 ->setDefault($row["Default"])
                 ->setExtra($row["Extra"]);
