@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Danilocgsilva\DatabaseDiscover;
 
 use PDO;
@@ -12,7 +14,11 @@ use Danilocgsilva\DatabaseDiscover\{
 
 class DatabaseDiscover
 {
-    private PDO $pdo;
+    private ?int $tableCount;
+
+    private array $tables = [];
+
+    public function __construct(private ?PDO $pdo = null) {}
 
     public function setPdo(PDO $pdo): self
     {
@@ -48,13 +54,16 @@ class DatabaseDiscover
      */
     public function getTables(): Generator
     {
-        $queryBase = sprintf("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND TABLE_SCHEMA = '%s';", $this->pdo->query('SELECT database()')->fetchColumn());
+        $this->tableCount = 0;
+        $queryBase = sprintf("SELECT table_name as table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND TABLE_SCHEMA = '%s';", $this->pdo->query('SELECT database()')->fetchColumn());
         $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
         $toQuery->execute();
         while ($row = $toQuery->fetch(PDO::FETCH_ASSOC)) {
             $table = new Table();
             $table->setName($row['table_name']);
             yield $table;
+            $this->tableCount++;
+            $this->tables[] = $table;
         }
     }
 
@@ -74,6 +83,18 @@ class DatabaseDiscover
             $table->setSize($row['FULL_SIZE']);
             yield $table;
         }
+    }
+
+    /**
+     * Provides the table counting.
+     * 
+     * NOTICE: table count is available only after getTables is used.
+     *
+     * @return integer
+     */
+    public function getTableCount(): int
+    {
+        return $this->tableCount;
     }
 
     /**
@@ -97,6 +118,13 @@ class DatabaseDiscover
                 $row['COLUMN_NAME'],
                 $row['REFERENCED_COLUMN_NAME']
             );
+        }
+    }
+
+    public function searchEqualNameFieldsFromOtherTables(string $fieldName): array
+    {
+        foreach ($this->tables as $table) {
+
         }
     }
 }
