@@ -16,8 +16,6 @@ class DatabaseDiscover
 {
     private ?int $tableCount;
 
-    private array $tables = [];
-
     public function __construct(private ?PDO $pdo = null) {}
 
     public function setPdo(PDO $pdo): self
@@ -27,7 +25,7 @@ class DatabaseDiscover
     }
 
     /**
-     * @return Generator, beign the fields from a table
+     * @return Generator<Field>
      */
     public function getFieldsFromTable(string $tableName): Generator
     {
@@ -42,7 +40,6 @@ class DatabaseDiscover
                 ->setKey($row["Key"])
                 ->setDefault($row["Default"])
                 ->setExtra($row["Extra"]);
-
             yield $field;
         }
     }
@@ -50,7 +47,7 @@ class DatabaseDiscover
     /**
      * Get a list of all tables from the current database.
      * 
-     * @return Generator A generator object containing Table objects with the table name set.
+     * @return Generator<Table>
      */
     public function getTables(): Generator
     {
@@ -63,18 +60,20 @@ class DatabaseDiscover
             $table->setName($row['table_name']);
             yield $table;
             $this->tableCount++;
-            $this->tables[] = $table;
         }
     }
 
     /**
      * Returns a generator object which yields Table objects containing the name and size of tables in the current database.
      * 
-     * @return Generator Returns a generator object which yields Table objects containing the name and size of tables in the current database.
+     * @return Generator<Table>
      */
     public function getTablesWithSize(): Generator
     {
-        $queryBase = sprintf("SELECT TABLE_NAME, DATA_LENGTH+INDEX_LENGTH as FULL_SIZE FROM information_schema.tables WHERE table_schema = '%s'", $this->pdo->query('SELECT database()')->fetchColumn());
+        $queryBase = sprintf(
+            "SELECT TABLE_NAME, DATA_LENGTH+INDEX_LENGTH as FULL_SIZE FROM information_schema.tables WHERE table_schema = '%s'", 
+            $this->pdo->query('SELECT database()')->fetchColumn()
+        );
         $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
         $toQuery->execute();
         while ($row = $toQuery->fetch(PDO::FETCH_ASSOC)) {
@@ -83,6 +82,19 @@ class DatabaseDiscover
             $table->setSize($row['FULL_SIZE']);
             yield $table;
         }
+    }
+
+    public function getTableSize(string $tableName): int
+    {
+        $queryBase = sprintf(
+            "SELECT TABLE_NAME, DATA_LENGTH+INDEX_LENGTH as FULL_SIZE FROM information_schema.tables WHERE table_schema = '%s' AND TABLE_NAME = '%s'", 
+            $this->pdo->query('SELECT database()')->fetchColumn(),
+            $tableName
+        );
+        $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+        $toQuery->execute();
+        $row = $toQuery->fetch(PDO::FETCH_ASSOC);
+        return $row['FULL_SIZE'];
     }
 
     /**
@@ -102,7 +114,7 @@ class DatabaseDiscover
      * 
      * @param string $tableName The name of the table to reference.
      * 
-     * @return Generator Returns all tables that references the provided table
+     * @return Generator<ReferencingTable>
      */
     public function referenceMe(string $tableName): Generator
     {
@@ -121,10 +133,22 @@ class DatabaseDiscover
         }
     }
 
-    public function searchEqualNameFieldsFromOtherTables(string $fieldName): array
+    /**
+     * List tables that have the field name
+     *
+     * @param string $fieldName
+     * @return Generator<Table>
+     */
+    public function tablesWithEqualFieldName(string $fieldName): Generator
     {
-        foreach ($this->tables as $table) {
-
+        foreach ($this->getTables() as $table) {
+            foreach (
+                $this->getFieldsFromTable($table->getName()) as $field
+            ) {
+                if ($field->getName() === $fieldName) {
+                    yield $table;
+                }
+            }
         }
     }
 }
