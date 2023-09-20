@@ -84,6 +84,11 @@ class DatabaseDiscover
         }
     }
 
+    /**
+     * Get table size in bytes
+     * 
+     * @return int
+     */
     public function getTableSize(string $tableName): int
     {
         $queryBase = sprintf(
@@ -95,6 +100,20 @@ class DatabaseDiscover
         $toQuery->execute();
         $row = $toQuery->fetch(PDO::FETCH_ASSOC);
         return $row['FULL_SIZE'];
+    }
+
+    /**
+     * The table rows count
+     * 
+     * return int
+     */
+    public function getRegistersCount(string $tableName): int
+    {
+        $queryBase = "SELECT COUNT(*) as registers_count FROM :tableName";
+        $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+        $toQuery->execute([':tableName' => $tableName]);
+        $row = $toQuery->fetch(PDO::FETCH_ASSOC);
+        return $row['registers_count'];
     }
 
     /**
