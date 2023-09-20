@@ -11,6 +11,7 @@ use Danilocgsilva\DatabaseDiscover\{
     ReferencingTable, 
     Field
 };
+use Exception;
 
 class DatabaseDiscover
 {
@@ -99,6 +100,9 @@ class DatabaseDiscover
         $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
         $toQuery->execute();
         $row = $toQuery->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            throw new Exception("No table found for {$tableName}");
+        }
         return $row['FULL_SIZE'];
     }
 
@@ -109,9 +113,9 @@ class DatabaseDiscover
      */
     public function getRegistersCount(string $tableName): int
     {
-        $queryBase = "SELECT COUNT(*) as registers_count FROM :tableName";
-        $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-        $toQuery->execute([':tableName' => $tableName]);
+        $queryBase = "SELECT COUNT(*) as registers_count FROM %s";
+        $toQuery = $this->pdo->prepare(sprintf($queryBase, $tableName), [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+        $toQuery->execute();
         $row = $toQuery->fetch(PDO::FETCH_ASSOC);
         return $row['registers_count'];
     }
