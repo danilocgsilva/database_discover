@@ -6,11 +6,6 @@ namespace Danilocgsilva\Database;
 
 use PDO;
 use Generator;
-use Danilocgsilva\DatabaseDiscover\{
-    Table, 
-    ReferencingTable, 
-    Field
-};
 use Exception;
 
 class Discover
