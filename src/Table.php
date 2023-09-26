@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Danilocgsilva\DatabaseDiscover;
+namespace Danilocgsilva\Database;
 
 class Table
 {

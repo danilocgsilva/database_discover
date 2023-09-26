@@ -1,6 +1,8 @@
 <?php
 
-namespace Danilocgsilva\DatabaseDiscover;
+declare(strict_types=1);
+
+namespace Danilocgsilva\Database;
 
 class Field
 {

@@ -1,10 +1,8 @@
 <?php
 
-namespace Danilocgsilva\DatabaseDiscover;
+declare(strict_types=1);
 
-use PDO;
-use Generator;
-use Danilocgsilva\DatabaseDiscover\Table;
+namespace Danilocgsilva\Database;
 
 class ReferencingTable
 {
