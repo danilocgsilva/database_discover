@@ -5,7 +5,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Danilocgsilva\\DatabaseDiscover\\": "src/"
+            "Danilocgsilva\\Database\\": "src/"
         }
     },
     "authors": [

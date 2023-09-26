@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Danilocgsilva\DatabaseDiscover;
+namespace Danilocgsilva\Database;
 
 use PDO;
 use Generator;
@@ -13,7 +13,7 @@ use Danilocgsilva\DatabaseDiscover\{
 };
 use Exception;
 
-class DatabaseDiscover
+class Discover
 {
     private ?int $tableCount;
 
