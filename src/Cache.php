@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Danilocgsilva\RepositoryHubFetcher;
+namespace Danilocgsilva\Database;
 
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 use Cache\Adapter\Filesystem\FilesystemCachePool;
 
-abstract class Fetcher
+abstract class Cache
 {
     protected $storage;
 

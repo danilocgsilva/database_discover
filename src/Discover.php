@@ -7,12 +7,16 @@ namespace Danilocgsilva\Database;
 use PDO;
 use Generator;
 use Exception;
+use QueryCache;
 
-class Discover
+class Discover extends Cache
 {
     private ?int $tableCount;
 
-    public function __construct(private ?PDO $pdo = null) {}
+    public function __construct(private ?PDO $pdo = null)
+    {
+        parent::__construct();
+    }
 
     public function setPdo(PDO $pdo): self
     {
@@ -52,9 +56,10 @@ class Discover
             "SELECT table_name as table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND TABLE_SCHEMA = '%s';", 
             $this->pdo->query('SELECT database()')->fetchColumn()
         );
-        $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-        $toQuery->execute();
-        while ($row = $toQuery->fetch(PDO::FETCH_ASSOC)) {
+        $queryCache = new QueryCache($this->pdo, $queryBase);
+        // $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+        // $toQuery->execute();
+        while ($row = $queryCache->fetch()) {
             $table = new Table();
             $table->setName($row['table_name']);
             yield $table;
