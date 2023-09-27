@@ -14,5 +14,7 @@
             "email": "contact@danilocgsilva.me"
         }
     ],
-    "require": {}
+    "require": {
+        "cache/filesystem-adapter": "^1.2"
+    }
 }
