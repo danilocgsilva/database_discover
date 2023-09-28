@@ -8,13 +8,12 @@ use PDO;
 use Generator;
 use Exception;
 
-class Discover extends Cache
+class Discover
 {
     private ?int $tableCount;
 
     public function __construct(private ?PDO $pdo = null)
     {
-        parent::__construct();
     }
 
     public function setPdo(PDO $pdo): self
@@ -56,15 +55,10 @@ class Discover extends Cache
             $this->pdo->query('SELECT database()')->fetchColumn()
         );
         $queryCache = new QueryCache($this->pdo, $queryBase);
-        // $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-        // $toQuery->execute();
         $queryCache->execute();
-        // foreach ($toQuery->fetch(PDO::FETCH_ASSOC) as $rowName) {
-        // while ($row = $toQuery->fetch(PDO::FETCH_ASSOC)) {
         while ($row = $queryCache->fetch()) {
             $table = new Table();
             $table->setName($row['table_name']);
-            // $table->setName($rowName);
             yield $table;
             $this->tableCount++;
         }
