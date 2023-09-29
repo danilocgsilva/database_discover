@@ -101,7 +101,7 @@ class Discover
         $toQuery->execute();
         $row = $toQuery->fetch(PDO::FETCH_ASSOC);
         if (!$row) {
-            throw new Exception("No table found for {$tableName}");
+            throw new TableNotFoundException("No table found for {$tableName}");
         }
         return $row['FULL_SIZE'];
     }
