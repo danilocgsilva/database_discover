@@ -13,18 +13,36 @@ class QueryCache extends Cache
 
     private $toQuery;
 
+    private ?bool $shouldQuery;
+
     private int $cursor = 0;
 
     public function __construct(
         private PDO $pdo, 
-        private string $query
+        private string $query,
+        string $cacheSuffix = null
     ) { 
         parent::__construct();
         $this->baseKey = preg_replace(
-            ["/\//", "/:/", "/\?/", "/=/", "/&/", "/-/", "/ /", "/'/", "/;/"], 
-            "_", 
+            ["/\//", "/:/", "/\?/", "/=/", "/&/", "/-/", "/ /", "/'/", "/;/", "/,/", "/\+/"], 
+            "", 
             $query
         );
+
+        if ($cacheSuffix) {
+            $this->baseKey .= $cacheSuffix;
+        }
+
+        $cacheKey = $this->baseKey;
+        $cachedData = $this->storage->getItem($cacheKey);
+        if (!$cachedData->isHit()) {
+            $cachedData->set('shoud not query them');
+            $cachedData->expiresAfter($this->cacheSecondsTime);
+            $this->storage->save($cachedData);
+            $this->shouldQuery = true;
+        } else {
+            $this->shouldQuery = false;
+        }
     }
 
     public function fetch(): array|false
@@ -53,7 +71,9 @@ class QueryCache extends Cache
 
     public function execute()
     {
-        $this->toQuery = $this->pdo->prepare($this->query, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-        $this->toQuery->execute();
+        if ($this->shouldQuery) {
+            $this->toQuery = $this->pdo->prepare($this->query, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+            $this->toQuery->execute();
+        }
     }
 }

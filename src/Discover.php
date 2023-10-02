@@ -54,7 +54,11 @@ class Discover
             "SELECT table_name as table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND TABLE_SCHEMA = '%s';", 
             $this->pdo->query('SELECT database()')->fetchColumn()
         );
-        $queryCache = new QueryCache($this->pdo, $queryBase);
+        $queryCache = new QueryCache(
+            $this->pdo, 
+            $queryBase, 
+            hash('md5', $this->pdo->getAttribute(PDO::ATTR_CONNECTION_STATUS))
+        );
         $queryCache->execute();
         while ($row = $queryCache->fetch()) {
             $table = new Table();
@@ -97,9 +101,14 @@ class Discover
             $this->pdo->query('SELECT database()')->fetchColumn(),
             $tableName
         );
-        $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-        $toQuery->execute();
-        $row = $toQuery->fetch(PDO::FETCH_ASSOC);
+        $queryCache = new QueryCache(
+            $this->pdo, 
+            $queryBase, 
+            hash('md5', $this->pdo->getAttribute(PDO::ATTR_CONNECTION_STATUS))
+        );
+        $queryCache->execute();
+
+        $row = $queryCache->fetch();
         if (!$row) {
             throw new TableNotFoundException("No table found for {$tableName}");
         }
