@@ -6,7 +6,7 @@ namespace Danilocgsilva\Database;
 
 use PDO;
 use Generator;
-use Exception;
+use PDOException;
 
 class Discover
 {
@@ -115,9 +115,13 @@ class Discover
     {
         $queryBase = "SELECT COUNT(*) as registers_count FROM %s";
         $toQuery = $this->pdo->prepare(sprintf($queryBase, $tableName), [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-        $toQuery->execute();
-        $row = $toQuery->fetch(PDO::FETCH_ASSOC);
-        return $row['registers_count'];
+        try {
+            $toQuery->execute();
+            $row = $toQuery->fetch(PDO::FETCH_ASSOC);
+            return $row['registers_count'];
+        } catch (PDOException $e) {
+            return 0;
+        }
     }
 
     /**
