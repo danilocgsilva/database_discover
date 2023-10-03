@@ -122,11 +122,17 @@ class Discover
      */
     public function getRegistersCount(string $tableName): int
     {
-        $queryBase = "SELECT COUNT(*) as registers_count FROM %s";
-        $toQuery = $this->pdo->prepare(sprintf($queryBase, $tableName), [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+        $queryBase = sprintf("SELECT COUNT(*) as registers_count FROM %s", $tableName);
+
+        $queryCache = new QueryCache(
+            $this->pdo, 
+            $queryBase, 
+            hash('md5', $this->pdo->getAttribute(PDO::ATTR_CONNECTION_STATUS))
+        );
+
         try {
-            $toQuery->execute();
-            $row = $toQuery->fetch(PDO::FETCH_ASSOC);
+            $queryCache->execute();
+            $row = $queryCache->fetch();
             return $row['registers_count'];
         } catch (PDOException $e) {
             return 0;

@@ -11,7 +11,7 @@ class QueryCache extends Cache
 {
     private string $baseKey;
 
-    private $toQuery;
+    private $toQuery = null;
 
     private ?bool $shouldQuery;
 
@@ -24,7 +24,13 @@ class QueryCache extends Cache
     ) { 
         parent::__construct();
         $this->baseKey = preg_replace(
-            ["/\//", "/:/", "/\?/", "/=/", "/&/", "/-/", "/ /", "/'/", "/;/", "/,/", "/\+/"], 
+            [
+                "/\//", "/:/",  "/\?/",
+                "/=/",  "/&/",  "/-/" ,
+                "/ /",  "/'/",  "/;/" ,
+                "/,/",  "/\+/", "/\*/",
+                "/\)/", "/\(/"
+            ], 
             "", 
             $query
         );
@@ -50,10 +56,17 @@ class QueryCache extends Cache
         $cacheKey = (string) $this->cursor . "_" . $this->baseKey;
         $cachedData = $this->storage->getItem($cacheKey);
         if (!$cachedData->isHit()) {
+
+            if (!$this->toQuery) {
+                return false;
+            }
+
             $cursorData = $this->toQuery->fetch(PDO::FETCH_ASSOC);
+
             if (!$cursorData) {
                 return false;
             }
+
             $cachedData->set($cursorData);
             $cachedData->expiresAfter($this->cacheSecondsTime);
             $this->storage->save($cachedData);
