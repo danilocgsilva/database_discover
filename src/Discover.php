@@ -133,7 +133,7 @@ class Discover
         try {
             $queryCache->execute();
             $row = $queryCache->fetch();
-            return $row['registers_count'];
+            return $row['registers_count'] ?? 0;
         } catch (PDOException $e) {
             return 0;
         }
