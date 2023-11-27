@@ -7,13 +7,27 @@ namespace Danilocgsilva\Database;
 use PDO;
 use Generator;
 use PDOException;
+use stdClass;
+use Exception;
 
 class Discover
 {
     private ?int $tableCount;
 
-    public function __construct(private ?PDO $pdo = null)
+    private $pdo;
+
+    public function __construct(PDO $pdo = null)
     {
+        if ($pdo === null) {
+            $this->pdo = new class() {
+                public function __call($name, $arguments)
+                {
+                    throw new Exception("You forgot to assing a PDO to the class.");
+                }
+            };
+        } else {
+            $this->pdo = $pdo;
+        }
     }
 
     public function setPdo(PDO $pdo): self
@@ -192,5 +206,27 @@ class Discover
                 }
             }
         }
+    }
+
+    public function getCreateTableReceipt(?string $tableName): string
+    {
+        $queryBase = 'SHOW CREATE TABLE %s;';        
+        if ($tableName) {
+            $query = sprintf($queryBase, $tableName);
+            $preResult = $this->pdo->prepare($query);
+            $preResult->execute();
+            $results = $preResult->fetch(PDO::FETCH_NUM);
+            return $results[1];
+        }
+
+        $createTableString = "";
+        foreach($this->getTables() as $table) {
+            $query = sprintf($queryBase, $table->getName());
+            $preResult = $this->pdo->prepare($query);
+            $preResult->execute();
+            $rowData = $preResult->fetch(PDO::FETCH_NUM);
+            $createTableString .= $rowData[1];
+        }
+        return $createTableString;
     }
 }
