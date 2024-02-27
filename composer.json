@@ -15,6 +15,6 @@
         }
     ],
     "require": {
-        "cache/filesystem-adapter": "^1.2"
+        "cache/filesystem-adapter": "^1.1"
     }
 }
