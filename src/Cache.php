@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Danilocgsilva\Database;
 
-use League\Flysystem\Adapter\Local;
-use League\Flysystem\Filesystem;
-use Cache\Adapter\Filesystem\FilesystemCachePool;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 abstract class Cache
 {
@@ -38,10 +36,7 @@ abstract class Cache
 
     private function buildStorage()
     {
-        $filesystemAdapter = new Local('/tmp/danilocgsilva-database-discover/cache');
-        $filesystem = new Filesystem($filesystemAdapter);
-        
-        $this->storage = new FilesystemCachePool($filesystem);
+        $this->storage = new FilesystemAdapter();
     }
 
 }
