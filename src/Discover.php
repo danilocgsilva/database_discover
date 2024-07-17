@@ -7,7 +7,6 @@ namespace Danilocgsilva\Database;
 use PDO;
 use Generator;
 use PDOException;
-use stdClass;
 use Exception;
 
 class Discover
@@ -15,6 +14,8 @@ class Discover
     private ?int $tableCount;
 
     private $pdo;
+
+    private array $skipTables = [];
 
     public function __construct(PDO $pdo = null)
     {
@@ -28,6 +29,19 @@ class Discover
         } else {
             $this->pdo = $pdo;
         }
+    }
+
+    /**
+     * Set tables to ignore.
+     * 
+     * @param array $skipTables
+     * 
+     * @return self
+     */
+    public function setSkipTables(array $skipTables): self
+    {
+        $this->skipTables = $skipTables;
+        return $this;
     }
 
     public function setPdo(PDO $pdo): self
@@ -198,6 +212,12 @@ class Discover
     public function tablesWithEqualFieldName(string $fieldName): Generator
     {
         foreach ($this->getTables() as $table) {
+            if (
+                in_array((string) $table, $this->skipTables)
+            ) {
+                continue;
+            }
+            
             foreach (
                 $this->getFieldsFromTable($table->getName()) as $field
             ) {
