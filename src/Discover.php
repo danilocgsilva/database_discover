@@ -17,6 +17,8 @@ class Discover
 
     private array $skipTables = [];
 
+    private $logMessages;
+
     public function __construct(PDO $pdo = null)
     {
         if ($pdo === null) {
@@ -29,6 +31,11 @@ class Discover
         } else {
             $this->pdo = $pdo;
         }
+    }
+
+    public function setLogMessages($logMessages): self{
+        $this->logMessages = $logMessages;
+        return $this;
     }
 
     /**
@@ -55,6 +62,9 @@ class Discover
      */
     public function getFieldsFromTable(string $tableName): Generator
     {
+        if ($this->logMessages) {
+            $this->logMessages->message("Fetching fields for table " . $tableName);
+        }
         $queryBase = "DESCRIBE $tableName";
         $toQuery = $this->pdo->prepare($queryBase, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
         $toQuery->execute();
@@ -71,29 +81,44 @@ class Discover
     }
 
     /**
-     * Get a list of all tables from the6 current database.
+     * Get a list of all tables from the current database.
      * 
-     * @return Generator<Table>
+     * @return Table[]
      */
-    public function getTables(): Generator
+    public function getTables(): array
     {
         $this->tableCount = 0;
         $queryBase = sprintf(
             "SELECT table_name as table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND TABLE_SCHEMA = '%s';", 
             $this->pdo->query('SELECT database()')->fetchColumn()
         );
+        if ($this->logMessages) {
+            $this->logMessages->message("Query to fetch tables: " . $queryBase);
+        }
         $queryCache = new QueryCache(
             $this->pdo, 
             $queryBase, 
             hash('md5', $this->pdo->getAttribute(PDO::ATTR_CONNECTION_STATUS))
         );
         $queryCache->execute();
+        $tables = [];
         while ($row = $queryCache->fetch()) {
+            if ($this->logMessages) {
+                $this->logMessages->message("Discovered table " . ($tableName = $row['table_name']));
+            }
+            if (!$this->nameCompliant($tableName)) {
+                if ($this->logMessages) {
+                    $this->logMessages->message("WARNNING! Table name is not compliant: " . $tableName . ".");
+                }
+                continue;
+            }
             $table = new Table();
-            $table->setName($row['table_name']);
-            yield $table;
+            $table->setName($tableName);
+            $tables[] = $table;
             $this->tableCount++;
         }
+
+        return $tables;
     }
 
     /**
@@ -248,5 +273,16 @@ class Discover
             $createTableString .= $rowData[1];
         }
         return $createTableString;
+    }
+
+    private function nameCompliant(string $tableName): bool
+    {
+        if (preg_match("/'/", $tableName)) {
+            return false;
+        }
+        if (preg_match("/\./", $tableName)) {
+            return false;
+        }
+        return true;
     }
 }
